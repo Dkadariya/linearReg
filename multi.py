@@ -12,7 +12,8 @@ prdt_risk=[]
 actual_risk=[]
 error_list=[]
 epoc=[]
-independent_variable=[]
+independent_variable1=[]
+independent_variable2=[]
 fname = os.path.dirname(os.path.realpath(__file__))+"/fluML.xlsx"
 # print (fname)
 
@@ -41,14 +42,15 @@ def normalize_dataset(dataset, minmax):
 #fetching the whole dataset
 for row_idx in range(1, xl_sheet.nrows):
 	knowT_obj = xl_sheet.cell(row_idx, 13)
-	risk_obj = xl_sheet.cell(row_idx, 9)  # Get cell object by row, col
+	risk_obj = xl_sheet.cell(row_idx, 9)
+	RespE_obj = xl_sheet.cell(row_idx, 6)
 	if(risk_obj.value !=u'' and knowT_obj.value !=u''):
-		complete_data.append([knowT_obj.value,risk_obj.value])
+		complete_data.append([knowT_obj.value,risk_obj.value,RespE_obj.value])
 
 minmax = dataset_minmax(complete_data)
 print (minmax)
 normalize_dataset(complete_data, minmax)
-
+print (complete_data)
 #dataset usage ratio
 percentage=80;
 train_data_count= (xl_sheet.nrows*percentage)/100
@@ -63,10 +65,11 @@ for row_idx in range(1, train_data_count):
 
 for row_idx in range(train_data_count, len(complete_data)-1):
 	test_data.append(complete_data[row_idx])
-	independent_variable.append(complete_data[row_idx][0])
+	independent_variable1.append(complete_data[row_idx][0])
+	independent_variable2.append(complete_data[row_idx][2])
 	actual_risk.append(complete_data[row_idx][1])
 
-a = dict(Counter(independent_variable))
+a = dict(Counter(independent_variable1))
 print (a)
 
 b = dict(Counter(actual_risk))
@@ -98,38 +101,38 @@ fo = open("pridcted.txt", "w")
 def predict(dset, cff):
 	prdt = cff[0]
 	for i in range(len(dset)-1):
-		prdt += cff[i + 1] * dset[i]
+		prdt += cff[1] * dset[0] +cff[2] * dset[1]
 	return prdt
  
 # Estimate linear regression coefficients using stochastic gradient descent
 def descent(train, l_rate, n_iter):
-	coef = [0.0 for i in range(len(train[0]))]
+	print ("length="+str(len(train[0])))
+	coef = [0.0 for i in range(3)]
 	print (coef)
 	for itr in range(n_iter):
-		sum_er = 0
+		sum_error = 0
 		epoc.append(itr)
 		for row in train:
 			p_val = predict(row, coef)
-			err = p_val - row[-1]
-			sum_er += err**2
-			coef[0] = coef[0] - l_rate * err
+			error = p_val - row[-1]
+			sum_error += error**2
+			coef[0] = coef[0] - l_rate * error
 			for i in range(len(row)-1):
-				coef[i + 1] = coef[i + 1] - l_rate * err * row[i]
+				print (i)
+				coef[1] = coef[1] - l_rate * error * row[0]
+				coef[2] = coef[2] - l_rate * error * row[1]
+
 				# print (coef)
-		error_list.append(sum_er/(2*train_data_count))
+		error_list.append(sum_error/(2*train_data_count))
 		# print('>epoch=%d, lrate=%.3f, error=%.3f' % (epoch, l_rate, sum_error))
 	return coef
  
-# Calculate coefficients
-dataset = [[-0.77,-0.554],[-0.345,-0.554],[-0.406,-0.182],[-0.575,0.554],[0,0.554],[0.169,0.951],[0.345,0.951],[-0.169,1.393],[-0.169,-1.393],[0,0.554],[-0.345,-0.554],[1.074,-0.951],[-0.864,0.951],[0.376,-0.554],[-0.864,-0.951],[-0.77,0.554],[-0.523,1.393],[-0.169,1.393],[-0.575,-0.951],[0,1.393],[0,1.393],[0,0.951],[0,1.393],[-0.523,0.951],[-0.575,1.393],[0.169,0.951],[-0.695,1.393],[0,0.951],[-0.77,0.951],[0,-0.182],[0.345,0.554],[0,-0.182],[0.169,0.554],[0.345,0.554],[0.169,-0.182],[0.864,-0.554],[0.345,-0.951],[-0.197,-0.951],[-0.169,-1.393],[-0.169,-0.182],[0.197,-0.951],[0.181,-1.393],[0,-0.182],[-0.345,0.182],[0,-0.951],[0.197,-1.393],[0.169,-0.951],[0,-0.951],[0,-1.393],[-0.523	,-0.182],[-0.345,0.554],[0,-0.182],[0.523,-0.182],[1.074,0.182],[0.169,-1.393],[-0.231,-0.182],[0,0.951],[-0.169,1.393],[0,-1.393],[0.345,-0.951],[-1.074,-0.951],[0.169,0.951],[0.345,-0.182],[-0.575,-0.554],[0,-0.182],[-0.523,0.182],[0.575,-0.182],[0,0.182],[0.77,-0.182],[0.197	,	-0.182],[0.169	,	-0.554],[-0.345	,	-0.951],[-0.345	,	0.951],[-0.523	,	0.182],[0.77	,	0.182],[0		,-0.182],[-0.376	,	-0.182],[0.523	,	0.554],[0		,0.951],[-0.575	,	1.393],[-0.169	,	0.554],[0		,0.554],[0.345	,	-0.182],[-0.181	,	-1.393],[0.523	,	1.393],[-0.169	,	-0.182],[0.169	,	-0.182],[0.169	,	-0.554],[-0.169	,	0.554],[0.575	,	0.554],[1.453	,	-0.554],[0		,-0.951],[0.197	,	-1.393],[0.77	,	0.554],[0.169	,	0.951],[0		,-0.951],[0.406	,	-0.554],[-0.231	,	-0.554],[-0.575	,	0.182],[0		,0.554],[0.77	,	-0.951],[-0.864	,	-0.951],[0		,-0.182],[0.169	,	0.182],[-0.376	,	0.554],[-0.864	,	-0.951],[-0.345	,	0.951],[-0.169	,	-0.182],[0.169	,	-0.182],[0		,1.393],[-0.376	,	0.951],[-0.197	,	-0.554],[-0.197	,	0.554],[-1.074	,	0.951],[0.532	,	-0.182],[0.532	,	-0.182],[-0.864	,	0.182],[-0.169	,	1.393],[0.575	,	0.554],[0		,-0.182],[0.575	,	1.393],[-0.169	,	0.182],[0		,-0.951],[-1.074	,	0.951],[0.169	,	-0.182],[0		,-0.554],[-0.77	,	1.393],[0.181	,	0.182],[-0.231	,	-1.393],[-0.169	,	-0.951],[0.864	,	-0.182],[0		,-0.182],[0.77	,	-0.182],[0		,-1.393],[0.575	,	-0.951],[0.575	,	-0.951],[0.406	,	-1.393],[0		,-0.951],[-0.376	,	0.182],[0		,-0.951],[0.169	,	0.182],[0		,-0.554],[0		,-0.182],[-0.345	,	-0.182],[0.406	,	-0.951],[0.575	,	-0.951],[-0.864	,	-0.554],[-0.345	,	0.182],[0.169	,	0.951],[1.074	,	-0.554],[1.453	,	-1.393],[-1.074	,	-0.182],[-0.169	,	0.554],[-0.575	,	-1.393],[0.169	,	-0.951],[0		,1.393],[-0.169	,	-0.554],[0.169	,	-0.554],[1.074	,	0.951],[-0.575	,	0.554],[0		,0.554],[0.695	,	-0.951],[0		,0.182],[0.169	,	0.554]
-]
-# normalize the data attributes
-# norm_D = preprocessing.normalize(dataset)
+
 norm_D = train_data
-# print (norm_D)
 l_rate = 0.0001
-n_iter = 70
+n_iter = 120
 cff = descent(norm_D, l_rate, n_iter)
+print (cff[0],cff[1],cff[2])
 #print(cff)
 
 
@@ -143,13 +146,13 @@ for data in test_data:
 p = dict(Counter(prdt_risk))
 print (p)
 # print (error_list)
-print (independent_variable)
-print
-print
-print (prdt_risk)
+# print (independent_variable)
+# print
+# print
+# print (prdt_risk)
 # plt.plot(epoc,error_list, 'g^')
 # plt.axis([0, 120, 0, 0.25])
-plt.plot(independent_variable,actual_risk, 'g^',independent_variable,prdt_risk, 'r--')
+plt.plot(independent_variable1,actual_risk, 'g^',independent_variable2,actual_risk, 'b^',independent_variable1,prdt_risk, 'ro',independent_variable2,prdt_risk, 'go')
 plt.axis([-0.25, 1.25, -0.25, 1.25])
 plt.show()
 
