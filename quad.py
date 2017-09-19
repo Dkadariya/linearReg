@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from collections import Counter
 from xlrd.sheet import ctype_text  
+from math import sqrt
 
 complete_data=[]
 train_data=[]
@@ -93,7 +94,14 @@ print (b)
 fo = open("pridcted.txt", "w")
 
 
+def RMSE(prdt_risk,actual_risk):
 
+	Terr=0
+	for i in range(len(prdt_risk)):
+		# print (prdt_risk[i]-actual_risk[i])
+		Terr = Terr + (prdt_risk[i]-actual_risk[i])**2
+	Terr = Terr/len(prdt_risk)
+	return sqrt(Terr)
 
 def predict(dset, cff):
 	prdt = cff[0]
@@ -115,7 +123,6 @@ def descent(train, l_rate, n_iter):
 			sum_error += error**2
 			coef[0] = coef[0] - l_rate * error
 			for i in range(len(row)-1):
-				print (i)
 				coef[i + 1] = coef[i + 1] - l_rate * error * row[i]
 				coef[i + 2] = coef[i + 2] - l_rate * error * row[i]*row[i]
 
@@ -126,12 +133,12 @@ def descent(train, l_rate, n_iter):
  
 
 norm_D = train_data
-l_rate = 0.0001
-n_iter = 120
+l_rate = 0.00001
+n_iter = 900
 cff = descent(norm_D, l_rate, n_iter)
 print (cff[0],cff[1],cff[2])
 #print(cff)
-
+print (cff)
 
 
 for data in test_data:
@@ -142,15 +149,20 @@ for data in test_data:
 	# print("Expected=%.3f, Predicted=%.3f Error=%.3f" % (data[-1], prdt,data[-1]-prdt))
 p = dict(Counter(prdt_risk))
 print (p)
+
+print (RMSE(prdt_risk, actual_risk))
 # print (error_list)
 # print (independent_variable)
 # print
 # print
 # print (prdt_risk)
-plt.plot(epoc,error_list, 'g^')
-plt.axis([0, 120, 0, 0.25])
-# plt.plot(independent_variable,actual_risk, 'g^',independent_variable,prdt_risk, 'r--')
-# plt.axis([-0.25, 1.25, -0.25, 1.25])
+# plt.plot(epoc,error_list, 'g^')
+# plt.axis([0, 950, 0, 0.25])
+plt.plot(independent_variable,prdt_risk, 'ro')
+plt.axis([-5.25, 5.25, -5.25, 5.25])
+
+# plt.plot(independent_variable,prdt_risk, 'g^')
+# plt.axis([-1.5, 1.5, -1.5, 1.5])
 plt.show()
 
 # Close opend file

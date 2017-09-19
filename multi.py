@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from collections import Counter
 from xlrd.sheet import ctype_text  
+from mpl_toolkits.mplot3d import Axes3D
 
 complete_data=[]
 train_data=[]
@@ -152,9 +153,24 @@ print (p)
 # print (prdt_risk)
 # plt.plot(epoc,error_list, 'g^')
 # plt.axis([0, 120, 0, 0.25])
-plt.plot(independent_variable1,actual_risk, 'g^',independent_variable2,actual_risk, 'b^',independent_variable1,prdt_risk, 'ro',independent_variable2,prdt_risk, 'go')
+plt.plot(independent_variable1,prdt_risk, 'g^')
 plt.axis([-0.25, 1.25, -0.25, 1.25])
 plt.show()
+
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# ax.scatter(x_test, y_test_std, z_test, c='b', marker='_')
+ax.scatter(independent_variable1, prdt_risk, independent_variable2, c='r', marker='_')
+ax.scatter(independent_variable1, actual_risk, independent_variable2, c='b', marker='_')
+
+ax.set_xlabel('X Label')
+ax.set_ylabel('Y Label')
+ax.set_zlabel('Z Label')
+
+plt.show()
+
 
 # Close opend file
 fo.close()
